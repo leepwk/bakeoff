@@ -7,6 +7,7 @@ const state = {
   weeks: [],
   bakers: [],
   activeBakers: [],
+  players: [],
 };
 
 const $ = (id) => document.getElementById(id);
@@ -39,6 +40,14 @@ function normaliseName(name) {
   return (name || "").trim().replace(/\s+/g, " ");
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>'\"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value);
+}
+
 function option(value, label, selected = false) {
   const opt = document.createElement("option");
   opt.value = value || "";
@@ -62,21 +71,46 @@ function fillBakerSelect(select, bakers, { blankLabel = "Choose baker", selected
   for (const baker of bakers) select.appendChild(option(baker.id, baker.name, baker.id === selectedId));
 }
 
+function fillPlayerSelect(select) {
+  if (!select) return;
+  select.innerHTML = "";
+  select.appendChild(option("", "Choose player", true));
+  for (const player of state.players) select.appendChild(option(player.id, player.name));
+}
+
 function currentWeekId() {
   return state.weeks.find((w) => w.is_current)?.id || state.weeks[0]?.id || "";
 }
 
+function publicPhotoUrl(avatarPath) {
+  if (!avatarPath) return "";
+  return state.supabase.storage.from(PLAYER_PHOTO_BUCKET).getPublicUrl(avatarPath).data.publicUrl;
+}
+
+function avatarHtml(avatarPath, playerName) {
+  const url = publicPhotoUrl(avatarPath);
+  if (!url) return "";
+  return `<img class="avatar" src="${escapeAttribute(url)}" alt="${escapeAttribute(playerName || "Player photo")}">`;
+}
+
 async function requireData() {
-  const [weeksRes, bakersRes] = await Promise.all([
+  const requests = [
     state.supabase.from("weeks").select("id, week_number, title, is_current, is_locked").order("week_number"),
     state.supabase.from("bakers").select("id, name, is_active, eliminated_week_id").order("name"),
-  ]);
+  ];
 
+  if (isAdmin()) {
+    requests.push(state.supabase.from("players").select("id, name, avatar_path").order("name"));
+  }
+
+  const [weeksRes, bakersRes, playersRes] = await Promise.all(requests);
   if (weeksRes.error) throw weeksRes.error;
   if (bakersRes.error) throw bakersRes.error;
+  if (playersRes?.error) throw playersRes.error;
 
   state.weeks = weeksRes.data || [];
   state.bakers = bakersRes.data || [];
+  state.players = playersRes?.data || [];
   state.activeBakers = state.bakers.filter((b) => b.is_active);
 
   const cw = currentWeekId();
@@ -94,6 +128,7 @@ async function requireData() {
     fillBakerSelect($("actualStarBaker"), state.bakers, { blankLabel: "Choose baker" });
     fillBakerSelect($("actualEliminated"), state.bakers, { blankLabel: "Choose baker" });
     fillBakerSelect($("actualHandshakes"), state.bakers, { blankLabel: null });
+    fillPlayerSelect($("photoPlayerSelect"));
     renderBakerList();
   }
 }
@@ -111,10 +146,10 @@ function renderBakerList() {
 async function getOrCreatePlayer(name) {
   const cleanName = normaliseName(name);
   if (!cleanName) throw new Error("Enter your player name.");
-  const existing = await state.supabase.from("players").select("id, name").eq("name", cleanName).maybeSingle();
+  const existing = await state.supabase.from("players").select("id, name, avatar_path").eq("name", cleanName).maybeSingle();
   if (existing.error) throw existing.error;
   if (existing.data) return existing.data;
-  const created = await state.supabase.from("players").insert({ name: cleanName }).select("id, name").single();
+  const created = await state.supabase.from("players").insert({ name: cleanName }).select("id, name, avatar_path").single();
   if (created.error) throw created.error;
   return created.data;
 }
@@ -237,10 +272,11 @@ async function renderLeaderboard() {
   lb.innerHTML = `<p class="muted">Loading...</p>`;
   all.innerHTML = "";
   try {
-    const leaderboardRes = await state.supabase.from("leaderboard").select("player_name,total_points");
+    const leaderboardRes = await state.supabase.from("leaderboard").select("player_name,total_points,avatar_path");
     if (leaderboardRes.error) throw leaderboardRes.error;
     const rows = leaderboardRes.data || [];
-    lb.innerHTML = rows.length ? `<table><thead><tr><th>Position</th><th>Player</th><th>Points</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.avatar_path ? `<img class="avatar" src="${state.supabase.storage.from(PLAYER_PHOTO_BUCKET).getPublicUrl(r.avatar_path).data.publicUrl}">`:""}${escapeHtml(r.player_name)}</td><td>${r.total_points}</td></tr>`).join("")}</tbody></table>` : `<p class="muted">No scores yet.</p>`;
+    lb.innerHTML = rows.length ? `<table><thead><tr><th>Position</th><th>Player</th><th>Points</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${avatarHtml(r.avatar_path, r.player_name)}${escapeHtml(r.player_name)}</td><td>${r.total_points}</td></tr>`).join("")}</tbody></table>` : `<p class="muted">No scores yet.</p>`;
+
     const predictionsRes = await state.supabase.from("predictions").select(`id,players(name),weeks(week_number,title),technical:bakers!predictions_technical_winner_baker_id_fkey(name),star:bakers!predictions_star_baker_id_fkey(name),eliminated:bakers!predictions_eliminated_baker_id_fkey(name),handshake:bakers!predictions_handshake_baker_id_fkey(name)`).order("created_at", { ascending: false });
     if (predictionsRes.error) throw predictionsRes.error;
     const picks = predictionsRes.data || [];
@@ -274,34 +310,22 @@ async function loadResultForWeek() {
 async function uploadPlayerPhoto(event) {
   event.preventDefault();
   if (!isAdmin()) return setText("playerPhotoStatus", "Admin access required.", true);
-
   try {
     const playerId = $("photoPlayerSelect").value;
     const file = $("playerPhotoFile").files[0];
-
+    if (!playerId) throw new Error("Choose a player");
     if (!file) throw new Error("Choose a file");
-
     const ext = file.name.split(".").pop();
     const path = `${playerId}.${ext}`;
-
-    const upload = await state.supabase.storage
-      .from(PLAYER_PHOTO_BUCKET)
-      .upload(path, file, { upsert: true });
-
+    const upload = await state.supabase.storage.from(PLAYER_PHOTO_BUCKET).upload(path, file, { upsert: true });
     if (upload.error) throw upload.error;
-
-    const update = await state.supabase
-      .from("players")
-      .update({ avatar_path: path })
-      .eq("id", playerId);
-
+    const update = await state.supabase.from("players").update({ avatar_path: path }).eq("id", playerId);
     if (update.error) throw update.error;
-
     setText("playerPhotoStatus", "Uploaded!");
+    await requireData();
     await renderLeaderboard();
-
   } catch (err) {
-    setText("playerPhotoStatus", err.message, true);
+    setText("playerPhotoStatus", err.message || "Could not upload photo.", true);
   }
 }
 
@@ -312,10 +336,6 @@ function switchTab(tabName) {
   $(`${tabName}Tab`).classList.remove("hidden");
   if (tabName === "leaderboard") renderLeaderboard();
   if (tabName === "admin") loadResultForWeek();
-}
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>'\"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
 }
 
 async function handleLogin(event) {
@@ -364,7 +384,7 @@ async function init() {
   $("currentWeekForm").addEventListener("submit", setCurrentWeek);
   $("refreshButton").addEventListener("click", renderLeaderboard);
   $("resultWeekSelect").addEventListener("change", loadResultForWeek);
-  $("playerPhotoForm").addEventListener("submit", uploadPlayerPhoto);
+  $("playerPhotoForm")?.addEventListener("submit", uploadPlayerPhoto);
   document.querySelectorAll(".tab").forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
   const { data } = await state.supabase.auth.getSession();
   if (data.session) await startApp();
