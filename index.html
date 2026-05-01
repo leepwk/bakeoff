@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bake Off Tipping</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./config.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Great British Bake Off</p>
+      <h1>Tipping Competition</h1>
+      <p class="sub">Pick the technical winner, star baker, elimination, and Hollywood handshake each week.</p>
+    </div>
+    <button id="logoutButton" class="secondary hidden">Log out</button>
+  </header>
+
+  <main>
+    <section id="setupWarning" class="card warning hidden">
+      <h2>Supabase config needed</h2>
+      <p>Edit <code>config.js</code> with your Supabase project URL and anon key.</p>
+    </section>
+
+    <section id="loginView" class="card">
+      <h2>Shared login</h2>
+      <p>Use the shared Supabase Auth email and password for now.</p>
+      <form id="loginForm" class="grid">
+        <label>Email <input id="email" type="email" required autocomplete="username" placeholder="bakeoff@example.com"></label>
+        <label>Password <input id="password" type="password" required autocomplete="current-password"></label>
+        <button type="submit">Log in</button>
+      </form>
+      <p id="loginStatus" class="status"></p>
+    </section>
+
+    <section id="appView" class="hidden">
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" data-tab="entry">Enter picks</button>
+        <button class="tab" data-tab="leaderboard">Leaderboard</button>
+        <button class="tab" data-tab="admin">Admin results</button>
+      </nav>
+
+      <section id="entryTab" class="tab-panel card">
+        <h2>Enter or update picks</h2>
+        <form id="predictionForm" class="grid">
+          <label>Your name
+            <input id="playerName" type="text" required placeholder="e.g. Lee">
+          </label>
+          <label>Week
+            <select id="weekSelect" required></select>
+          </label>
+          <label>Technical winner
+            <input id="technicalGuess" type="text" required placeholder="Contestant name">
+          </label>
+          <label>Star baker
+            <input id="starBakerGuess" type="text" required placeholder="Contestant name">
+          </label>
+          <label>Eliminated
+            <input id="eliminatedGuess" type="text" required placeholder="Contestant name">
+          </label>
+          <label class="checkbox">
+            <input id="handshakeGuess" type="checkbox"> Hollywood handshake this week
+          </label>
+          <button type="submit">Save picks</button>
+        </form>
+        <p id="predictionStatus" class="status"></p>
+      </section>
+
+      <section id="leaderboardTab" class="tab-panel card hidden">
+        <div class="section-title">
+          <h2>Leaderboard</h2>
+          <button id="refreshButton" class="secondary">Refresh</button>
+        </div>
+        <div id="leaderboard"></div>
+        <h3>All picks</h3>
+        <div id="allPredictions"></div>
+      </section>
+
+      <section id="adminTab" class="tab-panel card hidden">
+        <h2>Admin results</h2>
+        <p class="muted">Anyone with the shared login can update results. This is intentionally simple for a friends-and-family competition.</p>
+        <form id="resultForm" class="grid">
+          <label>Week
+            <select id="resultWeekSelect" required></select>
+          </label>
+          <label>Actual technical winner
+            <input id="actualTechnical" type="text" placeholder="Contestant name">
+          </label>
+          <label>Actual star baker
+            <input id="actualStarBaker" type="text" placeholder="Contestant name">
+          </label>
+          <label>Actual eliminated
+            <input id="actualEliminated" type="text" placeholder="Contestant name">
+          </label>
+          <label class="checkbox">
+            <input id="actualHandshake" type="checkbox"> Hollywood handshake happened
+          </label>
+          <button type="submit">Save result</button>
+        </form>
+        <p id="resultStatus" class="status"></p>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <p>Scoring: 1 point each for technical, star baker, eliminated, and handshake.</p>
+  </footer>
+</body>
+</html>
