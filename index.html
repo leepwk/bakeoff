@@ -11,6 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./config.js"></script>
   <script defer src="./app.js?v=4"></script>
+  <script defer src="./player-combo.js?v=1"></script>
 </head>
 <body>
   <header class="site-header">
@@ -50,13 +51,14 @@
         <div class="section-title">
           <div>
             <h2>Enter or update picks</h2>
-            <p class="muted">Only active bakers appear in the dropdowns. One entry per player per week.</p>
+            <p class="muted">Choose an existing player, or type a new name to create one.</p>
           </div>
           <button id="loadExistingButton" class="secondary" type="button">Load my picks</button>
         </div>
         <form id="predictionForm" class="grid">
           <label>Your player name
-            <input id="playerName" type="text" required autocomplete="name">
+            <input id="playerName" type="text" required autocomplete="off" list="playerNameOptions">
+            <datalist id="playerNameOptions"></datalist>
           </label>
           <label>Week
             <select id="weekSelect" required></select>
