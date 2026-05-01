@@ -40,6 +40,10 @@ function normaliseName(name) {
   return (name || "").trim().replace(/\s+/g, " ");
 }
 
+function normaliseNameKey(name) {
+  return normaliseName(name).toLowerCase();
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>'\"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
 }
@@ -143,12 +147,18 @@ function renderBakerList() {
   el.innerHTML = `<table><thead><tr><th>Baker</th><th>Status</th></tr></thead><tbody>${state.bakers.map((b) => `<tr><td>${escapeHtml(b.name)}</td><td>${b.is_active ? "Active" : "Eliminated"}</td></tr>`).join("")}</tbody></table>`;
 }
 
-async function getOrCreatePlayer(name) {
+async function findPlayerByName(name) {
   const cleanName = normaliseName(name);
   if (!cleanName) throw new Error("Enter your player name.");
-  const existing = await state.supabase.from("players").select("id, name, avatar_path").ilike("name", cleanName).maybeSingle();
-  if (existing.error) throw existing.error;
-  if (existing.data) return existing.data;
+  const playersRes = await state.supabase.from("players").select("id, name, avatar_path");
+  if (playersRes.error) throw playersRes.error;
+  return (playersRes.data || []).find((player) => normaliseNameKey(player.name) === normaliseNameKey(cleanName)) || null;
+}
+
+async function getOrCreatePlayer(name) {
+  const cleanName = normaliseName(name);
+  const existing = await findPlayerByName(cleanName);
+  if (existing) return existing;
   const created = await state.supabase.from("players").insert({ name: cleanName }).select("id, name, avatar_path").single();
   if (created.error) throw created.error;
   return created.data;
@@ -180,12 +190,9 @@ async function savePrediction(event) {
 async function loadExistingPrediction() {
   setText("predictionStatus", "Loading...");
   try {
-    const playerName = normaliseName($("playerName").value);
-    if (!playerName) throw new Error("Enter your player name first.");
-    const playerRes = await state.supabase.from("players").select("id").ilike("name", playerName).maybeSingle();
-    if (playerRes.error) throw playerRes.error;
-    if (!playerRes.data) throw new Error("No picks found for that player name yet.");
-    const predRes = await state.supabase.from("predictions").select("technical_winner_baker_id, star_baker_id, eliminated_baker_id, handshake_baker_id").eq("player_id", playerRes.data.id).eq("week_id", $("weekSelect").value).maybeSingle();
+    const player = await findPlayerByName($("playerName").value);
+    if (!player) throw new Error("No picks found for that player name yet.");
+    const predRes = await state.supabase.from("predictions").select("technical_winner_baker_id, star_baker_id, eliminated_baker_id, handshake_baker_id").eq("player_id", player.id).eq("week_id", $("weekSelect").value).maybeSingle();
     if (predRes.error) throw predRes.error;
     if (!predRes.data) throw new Error("No picks found for this week yet.");
     $("technicalGuess").value = predRes.data.technical_winner_baker_id || "";
