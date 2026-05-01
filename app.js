@@ -240,7 +240,7 @@ async function renderLeaderboard() {
     const leaderboardRes = await state.supabase.from("leaderboard").select("player_name,total_points");
     if (leaderboardRes.error) throw leaderboardRes.error;
     const rows = leaderboardRes.data || [];
-    lb.innerHTML = rows.length ? `<table><thead><tr><th>Position</th><th>Player</th><th>Points</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(r.player_name)}</td><td>${r.total_points}</td></tr>`).join("")}</tbody></table>` : `<p class="muted">No scores yet.</p>`;
+    lb.innerHTML = rows.length ? `<table><thead><tr><th>Position</th><th>Player</th><th>Points</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${r.avatar_path ? `<img class="avatar" src="${state.supabase.storage.from(PLAYER_PHOTO_BUCKET).getPublicUrl(r.avatar_path).data.publicUrl}">`:""}${escapeHtml(r.player_name)}</td><td>${r.total_points}</td></tr>`).join("")}</tbody></table>` : `<p class="muted">No scores yet.</p>`;
     const predictionsRes = await state.supabase.from("predictions").select(`id,players(name),weeks(week_number,title),technical:bakers!predictions_technical_winner_baker_id_fkey(name),star:bakers!predictions_star_baker_id_fkey(name),eliminated:bakers!predictions_eliminated_baker_id_fkey(name),handshake:bakers!predictions_handshake_baker_id_fkey(name)`).order("created_at", { ascending: false });
     if (predictionsRes.error) throw predictionsRes.error;
     const picks = predictionsRes.data || [];
