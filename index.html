@@ -11,6 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./config.js"></script>
   <script defer src="./app.js?v=5"></script>
+  <script defer src="./admin-handshake-checkboxes.js?v=1"></script>
   <script defer src="./default-leaderboard.js?v=2"></script>
   <script defer src="./weekly-results.js?v=1"></script>
   <script defer src="./score-breakdown.js?v=2"></script>
@@ -135,8 +136,8 @@
               <select id="actualEliminated"></select>
             </label>
             <label class="span-two">Hollywood handshakes
-              <select id="actualHandshakes" multiple size="6"></select>
-              <span class="hint">Hold Ctrl/Cmd to select multiple bakers. Leave blank if none.</span>
+              <div id="actualHandshakes" class="checkbox-list" role="group" aria-label="Hollywood handshakes"></div>
+              <span class="hint">Tick every baker who received a Hollywood handshake. Leave all unticked if none.</span>
             </label>
             <button type="submit">Save results</button>
           </form>
