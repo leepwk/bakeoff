@@ -1,4 +1,5 @@
 const ADMIN_EMAIL = "admin@betterworld.com";
+const PLAYER_PHOTO_BUCKET = "player-photos";
 
 const state = {
   supabase: null,
@@ -270,6 +271,40 @@ async function loadResultForWeek() {
   }
 }
 
+async function uploadPlayerPhoto(event) {
+  event.preventDefault();
+  if (!isAdmin()) return setText("playerPhotoStatus", "Admin access required.", true);
+
+  try {
+    const playerId = $("photoPlayerSelect").value;
+    const file = $("playerPhotoFile").files[0];
+
+    if (!file) throw new Error("Choose a file");
+
+    const ext = file.name.split(".").pop();
+    const path = `${playerId}.${ext}`;
+
+    const upload = await state.supabase.storage
+      .from(PLAYER_PHOTO_BUCKET)
+      .upload(path, file, { upsert: true });
+
+    if (upload.error) throw upload.error;
+
+    const update = await state.supabase
+      .from("players")
+      .update({ avatar_path: path })
+      .eq("id", playerId);
+
+    if (update.error) throw update.error;
+
+    setText("playerPhotoStatus", "Uploaded!");
+    await renderLeaderboard();
+
+  } catch (err) {
+    setText("playerPhotoStatus", err.message, true);
+  }
+}
+
 function switchTab(tabName) {
   if (tabName === "admin" && !isAdmin()) return;
   document.querySelectorAll(".tab").forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tabName));
@@ -329,6 +364,7 @@ async function init() {
   $("currentWeekForm").addEventListener("submit", setCurrentWeek);
   $("refreshButton").addEventListener("click", renderLeaderboard);
   $("resultWeekSelect").addEventListener("change", loadResultForWeek);
+  $("playerPhotoForm").addEventListener("submit", uploadPlayerPhoto);
   document.querySelectorAll(".tab").forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
   const { data } = await state.supabase.auth.getSession();
   if (data.session) await startApp();
