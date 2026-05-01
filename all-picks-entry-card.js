@@ -24,7 +24,14 @@ function moveAllPicksToOwnTab() {
   allPicksTab.appendChild(allPredictions);
   leaderboardTab.insertAdjacentElement("afterend", allPicksTab);
 
-  document.getElementById("refreshAllPicksButton")?.addEventListener("click", renderLeaderboard);
+  document.getElementById("refreshAllPicksButton")?.addEventListener("click", () => renderAllPicks?.());
 }
+
+const originalSwitchTabForAllPicks = switchTab;
+switchTab = function (tabName) {
+  const result = originalSwitchTabForAllPicks(tabName);
+  if (tabName === "allPicks") renderAllPicks?.();
+  return result;
+};
 
 document.addEventListener("DOMContentLoaded", moveAllPicksToOwnTab);
