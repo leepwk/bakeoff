@@ -1,6 +1,6 @@
 async function renderScoreBreakdown() {
   const leaderboardEl = document.getElementById("leaderboard");
-  if (!leaderboardEl || !window.state?.supabase) return;
+  if (!leaderboardEl || !state?.supabase) return;
 
   let el = document.getElementById("scoreBreakdown");
   if (!el) {
