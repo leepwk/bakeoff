@@ -266,6 +266,29 @@ footer {
   color: var(--muted);
 }
 
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  object-fit: cover;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.avatar-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eee;
+  font-weight: bold;
+}
+
+.player-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 @media (max-width: 760px) {
   .site-header {
     display: block;
