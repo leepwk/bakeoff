@@ -1,48 +1,30 @@
-function moveAllPicksNextToEntry() {
-  const entryTab = document.getElementById("entryTab");
+function moveAllPicksToOwnTab() {
+  const tabs = document.querySelector(".tabs");
+  const entryButton = document.querySelector('[data-tab="entry"]');
+  const leaderboardTab = document.getElementById("leaderboardTab");
   const allPredictions = document.getElementById("allPredictions");
-  if (!entryTab || !allPredictions || document.getElementById("entryAllPicksCard")) return;
-
-  const style = document.createElement("style");
-  style.textContent = `
-    .entry-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
-      gap: 22px;
-      align-items: start;
-    }
-    .entry-layout .card {
-      margin-bottom: 0;
-    }
-    @media (max-width: 980px) {
-      .entry-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-  `;
-  document.head.appendChild(style);
+  if (!tabs || !entryButton || !leaderboardTab || !allPredictions || document.getElementById("allPicksTab")) return;
 
   const oldHeading = Array.from(document.querySelectorAll("#leaderboardTab h3"))
     .find((heading) => heading.textContent.trim().toLowerCase() === "all picks");
   oldHeading?.remove();
 
-  const entryCard = document.createElement("section");
-  entryCard.className = "card";
-  while (entryTab.firstChild) entryCard.appendChild(entryTab.firstChild);
+  const allPicksButton = document.createElement("button");
+  allPicksButton.className = "tab";
+  allPicksButton.dataset.tab = "allPicks";
+  allPicksButton.type = "button";
+  allPicksButton.textContent = "All picks";
+  allPicksButton.addEventListener("click", () => switchTab("allPicks"));
+  entryButton.insertAdjacentElement("afterend", allPicksButton);
 
-  const allPicksCard = document.createElement("section");
-  allPicksCard.id = "entryAllPicksCard";
-  allPicksCard.className = "card";
-  allPicksCard.innerHTML = `<h2>All picks</h2>`;
-  allPicksCard.appendChild(allPredictions);
+  const allPicksTab = document.createElement("section");
+  allPicksTab.id = "allPicksTab";
+  allPicksTab.className = "tab-panel card hidden";
+  allPicksTab.innerHTML = `<div class="section-title"><h2>All picks</h2><button id="refreshAllPicksButton" class="secondary" type="button">Refresh</button></div>`;
+  allPicksTab.appendChild(allPredictions);
+  leaderboardTab.insertAdjacentElement("afterend", allPicksTab);
 
-  const layout = document.createElement("div");
-  layout.className = "entry-layout";
-  layout.appendChild(entryCard);
-  layout.appendChild(allPicksCard);
-
-  entryTab.classList.remove("card");
-  entryTab.appendChild(layout);
+  document.getElementById("refreshAllPicksButton")?.addEventListener("click", renderLeaderboard);
 }
 
-document.addEventListener("DOMContentLoaded", moveAllPicksNextToEntry);
+document.addEventListener("DOMContentLoaded", moveAllPicksToOwnTab);
