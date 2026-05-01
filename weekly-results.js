@@ -49,7 +49,7 @@ async function renderActualResults() {
       });
 
     el.innerHTML = rows.length
-      ? `<h3>Actual results</h3><table><thead><tr><th>Week</th><th>Technical</th><th>Star baker</th><th>Eliminated</th><th>Hollywood handshakes</th></tr></thead><tbody>${rows.map((result) => `<tr><td>${escapeHtml(weekLabel(result.week_id))}</td><td>${escapeHtml(bakerName(result.technical_winner_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.star_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.eliminated_baker_id) || "Not set")}</td><td>${escapeHtml((handshakesByResult.get(result.id) || []).join(", ") || "None")}</td></tr>`).join("")}</tbody></table>`
+      ? `<h3>Results</h3><table><thead><tr><th>Week</th><th>Technical</th><th>Star baker</th><th>Eliminated</th><th>Hollywood handshakes</th></tr></thead><tbody>${rows.map((result) => `<tr><td>${escapeHtml(weekLabel(result.week_id))}</td><td>${escapeHtml(bakerName(result.technical_winner_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.star_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.eliminated_baker_id) || "Not set")}</td><td>${escapeHtml((handshakesByResult.get(result.id) || []).join(", ") || "None")}</td></tr>`).join("")}</tbody></table>`
       : "";
   } catch (err) {
     el.innerHTML = `<p class="status error">${escapeHtml(err.message || "Could not load actual results.")}</p>`;
