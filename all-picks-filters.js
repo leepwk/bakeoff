@@ -110,9 +110,9 @@ function setupAllPicksFilters() {
   applyAllPicksFilters();
 }
 
-const originalRenderLeaderboardForAllPicksFilters = renderLeaderboard;
-renderLeaderboard = async function () {
-  await originalRenderLeaderboardForAllPicksFilters();
+const originalRenderAllPicksForFilters = renderAllPicks;
+renderAllPicks = async function () {
+  await originalRenderAllPicksForFilters();
   setupAllPicksFilters();
 };
 
