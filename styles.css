@@ -22,8 +22,8 @@ body {
   color: var(--ink);
   background:
     radial-gradient(circle at top left, rgba(246, 190, 202, 0.32), transparent 30rem),
-    radial-gradient(circle at top right, rgba(184, 215, 226, 0.3), transparent 34rem),
-    linear-gradient(180deg, var(--bg), #fffdf9 58%, #f8fbfa);
+    radial-gradient(circle at top right, rgba(184, 215, 226, 0.48), transparent 38rem),
+    linear-gradient(180deg, var(--bg), #fffdf9 58%, #f3fafb);
 }
 
 .site-header,
