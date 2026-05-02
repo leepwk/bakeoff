@@ -6,7 +6,10 @@ function applyLeaderboardMedals() {
   rows.forEach((row, index) => {
     const positionCell = row.querySelector("td:first-child");
     if (!positionCell) return;
-    positionCell.textContent = medals[index] || String(index + 1);
+    const medal = medals[index];
+    positionCell.innerHTML = medal
+      ? `<span class="position-medal" aria-label="Position ${index + 1}">${medal}</span>`
+      : String(index + 1);
   });
 }
 
