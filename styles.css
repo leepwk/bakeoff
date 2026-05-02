@@ -1,14 +1,14 @@
 :root {
-  --bg: #fff8f1;
-  --card: #ffffff;
-  --ink: #2f2118;
-  --muted: #75675c;
-  --brand: #b85c38;
-  --brand-dark: #8f3f24;
-  --border: #ead9cb;
-  --warning: #fff3cd;
+  --bg: #fff7ef;
+  --card: #fffdf9;
+  --ink: #35243a;
+  --muted: #7c6a77;
+  --brand: #c98296;
+  --brand-dark: #8f536a;
+  --border: #efd9df;
+  --warning: #fff2c8;
   --error: #b42318;
-  --shadow: 0 18px 45px rgba(83, 46, 23, 0.12);
+  --shadow: 0 18px 42px rgba(103, 75, 99, 0.1);
 }
 
 * {
@@ -21,8 +21,9 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(255, 210, 160, 0.55), transparent 35rem),
-    linear-gradient(180deg, var(--bg), #fffdf9);
+    radial-gradient(circle at top left, rgba(246, 190, 202, 0.32), transparent 30rem),
+    radial-gradient(circle at top right, rgba(184, 215, 226, 0.48), transparent 38rem),
+    linear-gradient(180deg, var(--bg), #fffdf9 58%, #f3fafb);
 }
 
 .site-header,
@@ -78,7 +79,7 @@ h3 {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 253, 249, 0.92);
   border: 1px solid var(--border);
   border-radius: 24px;
   box-shadow: var(--shadow);
@@ -123,7 +124,7 @@ input,
 select {
   width: 100%;
   border: 1px solid var(--border);
-  background: #fffdfb;
+  background: #fffaf7;
   color: var(--ink);
   border-radius: 14px;
   padding: 12px 14px;
@@ -137,7 +138,7 @@ select[multiple] {
 input:focus,
 select:focus {
   border-color: var(--brand);
-  box-shadow: 0 0 0 4px rgba(184, 92, 56, 0.14);
+  box-shadow: 0 0 0 4px rgba(201, 130, 150, 0.16);
 }
 
 button {
@@ -149,7 +150,7 @@ button {
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 10px 24px rgba(184, 92, 56, 0.22);
+  box-shadow: 0 10px 24px rgba(143, 83, 106, 0.18);
 }
 
 button:hover {
@@ -158,14 +159,14 @@ button:hover {
 }
 
 button.secondary {
-  background: #fff;
+  background: #fffdf9;
   color: var(--brand-dark);
   border: 1px solid var(--border);
   box-shadow: none;
 }
 
 button.secondary:hover {
-  background: #fff5ee;
+  background: #fff1f5;
 }
 
 .tabs {
@@ -176,7 +177,7 @@ button.secondary:hover {
 }
 
 .tab {
-  background: #fff;
+  background: #fffdf9;
   color: var(--brand-dark);
   border: 1px solid var(--border);
   box-shadow: none;
@@ -231,7 +232,7 @@ table {
   border-collapse: collapse;
   overflow: hidden;
   border-radius: 16px;
-  background: #fff;
+  background: #fffdf9;
 }
 
 th,
@@ -247,7 +248,7 @@ th {
   font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: #fff2e8;
+  background: #f9eaf0;
 }
 
 tr:last-child td {
@@ -255,7 +256,7 @@ tr:last-child td {
 }
 
 code {
-  background: #fff2e8;
+  background: #f9eaf0;
   border: 1px solid var(--border);
   padding: 2px 6px;
   border-radius: 8px;
