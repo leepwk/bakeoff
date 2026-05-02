@@ -20,7 +20,7 @@ function moveAllPicksToOwnTab() {
   const allPicksTab = document.createElement("section");
   allPicksTab.id = "allPicksTab";
   allPicksTab.className = "tab-panel card hidden";
-  allPicksTab.innerHTML = `<div class="section-title"><h2>All picks</h2><button id="refreshAllPicksButton" class="secondary" type="button">Refresh</button></div>`;
+  allPicksTab.innerHTML = `<div class="section-title"><h2>Pick history</h2><button id="refreshAllPicksButton" class="secondary" type="button">Refresh</button></div>`;
   allPicksTab.appendChild(allPredictions);
   leaderboardTab.insertAdjacentElement("afterend", allPicksTab);
 
