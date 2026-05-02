@@ -6,14 +6,14 @@ function moveAllPicksToOwnTab() {
   if (!tabs || !entryButton || !leaderboardTab || !allPredictions || document.getElementById("allPicksTab")) return;
 
   const oldHeading = Array.from(document.querySelectorAll("#leaderboardTab h3"))
-    .find((heading) => heading.textContent.trim().toLowerCase() === "all picks");
+    .find((heading) => heading.textContent.trim().toLowerCase() === "pick history");
   oldHeading?.remove();
 
   const allPicksButton = document.createElement("button");
   allPicksButton.className = "tab";
   allPicksButton.dataset.tab = "allPicks";
   allPicksButton.type = "button";
-  allPicksButton.textContent = "All picks";
+  allPicksButton.textContent = "Pick history";
   allPicksButton.addEventListener("click", () => switchTab("allPicks"));
   entryButton.insertAdjacentElement("afterend", allPicksButton);
 
