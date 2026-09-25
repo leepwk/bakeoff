@@ -30,7 +30,106 @@ function renderAdminPlayerAvatar(player) {
   deleteButton.classList.remove("hidden");
 }
 
-function fillAdminPlayerEditor() {
+function normaliseSmsPhoneNumber(value) {
+  const compact = String(value || "").trim().replace(/[\s()-]/g, "");
+  if (!compact) return null;
+  if (/^07\d{9}$/.test(compact)) return `+44${compact.slice(1)}`;
+  if (/^447\d{9}$/.test(compact)) return `+${compact}`;
+  if (/^\+[1-9]\d{7,14}$/.test(compact)) return compact;
+  throw new Error("Enter a valid mobile number, for example 07700 900123 or +447700900123.");
+}
+
+function formatSmsHistoryDate(value) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function renderAdminPlayerSmsHistory(rows) {
+  const container = document.getElementById("adminPlayerSmsHistory");
+  if (!container) return;
+
+  if (!rows.length) {
+    container.innerHTML = '<p class="muted">No SMS messages have been logged for this player.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Week</th>
+          <th>Status</th>
+          <th>Sent</th>
+          <th>Number</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((row) => {
+          const week = row.weeks
+            ? `Week ${row.weeks.week_number}${row.weeks.title ? `: ${escapeHtml(row.weeks.title)}` : ""}`
+            : "—";
+          const sent = row.sent_at || row.attempted_at || row.created_at;
+          const statusDetail = row.status === "failed" && row.error_message
+            ? `<span title="${escapeAttribute(row.error_message)}">Failed</span>`
+            : escapeHtml(row.status || "—");
+
+          return `
+            <tr>
+              <td>${week}</td>
+              <td>${statusDetail}</td>
+              <td>${escapeHtml(formatSmsHistoryDate(sent))}</td>
+              <td>${escapeHtml(row.phone_number || "—")}</td>
+              <td>${escapeHtml(row.message_text || "—")}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function loadAdminPlayerSms(player) {
+  const phoneInput = document.getElementById("adminPlayerPhoneNumber");
+  const enabledInput = document.getElementById("adminPlayerSmsEnabled");
+  const history = document.getElementById("adminPlayerSmsHistory");
+  if (!phoneInput || !enabledInput || !history) return;
+
+  phoneInput.value = "";
+  enabledInput.checked = false;
+
+  if (!player) {
+    phoneInput.disabled = true;
+    enabledInput.disabled = true;
+    history.innerHTML = '<p class="muted">Choose a player to see their SMS history.</p>';
+    setText("adminPlayerSmsStatus", "");
+    return;
+  }
+
+  phoneInput.disabled = false;
+  enabledInput.disabled = false;
+  history.innerHTML = '<p class="muted">Loading SMS history...</p>';
+
+  try {
+    const [settings, rows] = await Promise.all([
+      bakeoffApi.getPlayerSmsSettings(player.id),
+      bakeoffApi.getPlayerSmsHistory(player.id),
+    ]);
+
+    phoneInput.value = settings?.phone_number || "";
+    enabledInput.checked = Boolean(settings?.sms_reminders_enabled);
+    renderAdminPlayerSmsHistory(rows);
+    setText("adminPlayerSmsStatus", "");
+  } catch (err) {
+    history.innerHTML = '<p class="status error">Could not load SMS history.</p>';
+    setText("adminPlayerSmsStatus", err.message || "Could not load SMS settings.", true);
+  }
+}
+
+async function fillAdminPlayerEditor() {
   const select = document.getElementById("adminPlayerSelect");
   const nameInput = document.getElementById("adminPlayerName");
   const photoSelect = document.getElementById("photoPlayerSelect");
@@ -45,12 +144,13 @@ function fillAdminPlayerEditor() {
   nameInput.value = player?.name || "";
   if (photoSelect && player) photoSelect.value = player.id;
   renderAdminPlayerAvatar(player);
+  await loadAdminPlayerSms(player);
 }
 
 async function refreshAdminPlayerData() {
   state.players = await bakeoffApi.getPlayers();
   fillPlayerSelect(document.getElementById("photoPlayerSelect"));
-  fillAdminPlayerEditor();
+  await fillAdminPlayerEditor();
   if (typeof loadPlayerNameOptions === "function") await loadPlayerNameOptions();
 }
 
@@ -72,6 +172,33 @@ async function updateAdminPlayerName(event) {
     await renderLeaderboard();
   } catch (err) {
     setText("adminPlayerStatus", err.message || "Could not update player.", true);
+  }
+}
+
+async function updateAdminPlayerSms(event) {
+  event.preventDefault();
+  if (!isAdmin()) return setText("adminPlayerSmsStatus", "Admin access required.", true);
+
+  const player = selectedAdminPlayer();
+  if (!player) return setText("adminPlayerSmsStatus", "Choose a player.", true);
+
+  try {
+    const phoneNumber = normaliseSmsPhoneNumber(document.getElementById("adminPlayerPhoneNumber")?.value);
+    const enabled = Boolean(document.getElementById("adminPlayerSmsEnabled")?.checked);
+
+    if (enabled && !phoneNumber) {
+      throw new Error("Enter a mobile number before enabling SMS reminders.");
+    }
+
+    setText("adminPlayerSmsStatus", "Saving...");
+    await bakeoffApi.savePlayerSmsSettings(player.id, {
+      phone_number: phoneNumber,
+      sms_reminders_enabled: enabled,
+    });
+    setText("adminPlayerSmsStatus", "SMS settings saved.");
+    await loadAdminPlayerSms(player);
+  } catch (err) {
+    setText("adminPlayerSmsStatus", err.message || "Could not save SMS settings.", true);
   }
 }
 
@@ -161,8 +288,11 @@ function loadAdminPlayerTools() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("adminPlayerSelect")?.addEventListener("change", fillAdminPlayerEditor);
+  document.getElementById("adminPlayerSelect")?.addEventListener("change", () => {
+    fillAdminPlayerEditor().catch((err) => setText("adminPlayerSmsStatus", err.message || "Could not load SMS settings.", true));
+  });
   document.getElementById("adminPlayerNameForm")?.addEventListener("submit", updateAdminPlayerName);
+  document.getElementById("adminPlayerSmsForm")?.addEventListener("submit", updateAdminPlayerSms);
   document.getElementById("adminPlayerPhotoForm")?.addEventListener("submit", uploadAdminPlayerPhoto);
   document.getElementById("deleteAdminPlayerAvatarButton")?.addEventListener("click", deleteAdminPlayerAvatar);
   document.getElementById("deleteAdminPlayerButton")?.addEventListener("click", deleteAdminPlayer);
