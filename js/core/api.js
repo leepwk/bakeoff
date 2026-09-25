@@ -159,4 +159,41 @@ window.bakeoffApi = {
     const res = await state.supabase.from("players").update({ avatar_path: avatarPath }).eq("id", playerId);
     if (res.error) throw res.error;
   },
+
+  async getPlayerSmsSettings(playerId) {
+    const res = await state.supabase
+      .from("player_sms_settings")
+      .select("player_id, phone_number, sms_reminders_enabled")
+      .eq("player_id", playerId)
+      .maybeSingle();
+    if (res.error) throw res.error;
+    return res.data;
+  },
+
+  async savePlayerSmsSettings(playerId, payload) {
+    const res = await state.supabase
+      .from("player_sms_settings")
+      .upsert(
+        {
+          player_id: playerId,
+          phone_number: payload.phone_number,
+          sms_reminders_enabled: payload.sms_reminders_enabled,
+        },
+        { onConflict: "player_id" }
+      )
+      .select("player_id, phone_number, sms_reminders_enabled")
+      .single();
+    if (res.error) throw res.error;
+    return res.data;
+  },
+
+  async getPlayerSmsHistory(playerId) {
+    const res = await state.supabase
+      .from("sms_messages")
+      .select("id, week_id, phone_number, message_type, message_text, status, provider, error_message, attempted_at, sent_at, created_at, weeks(week_number,title)")
+      .eq("player_id", playerId)
+      .order("created_at", { ascending: false });
+    if (res.error) throw res.error;
+    return res.data || [];
+  },
 };
