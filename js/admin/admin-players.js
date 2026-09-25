@@ -195,8 +195,8 @@ async function updateAdminPlayerSms(event) {
       phone_number: phoneNumber,
       sms_reminders_enabled: enabled,
     });
-    setText("adminPlayerSmsStatus", "SMS settings saved.");
     await loadAdminPlayerSms(player);
+    setText("adminPlayerSmsStatus", "SMS settings saved.");
   } catch (err) {
     setText("adminPlayerSmsStatus", err.message || "Could not save SMS settings.", true);
   }
