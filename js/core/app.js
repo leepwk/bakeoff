@@ -386,7 +386,7 @@ async function renderLeaderboardTable() {
   lb.innerHTML = `<p class="muted">Loading...</p>`;
   try {
     const rows = await bakeoffApi.getLeaderboard();
-    lb.innerHTML = rows.length ? `<table><thead><tr><th>Position</th><th>Player</th><th>Points</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${avatarHtml(r.avatar_path, r.player_name)}${escapeHtml(r.player_name)}</td><td>${r.total_points}</td></tr>`).join("")}</tbody></table>` : `<p class="muted">No scores yet.</p>`;
+    lb.innerHTML = rows.length ? `<table><thead><tr><th>Position</th><th>Player</th><th>Points</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${r.position}</td><td>${avatarHtml(r.avatar_path, r.player_name)}${escapeHtml(r.player_name)}</td><td>${r.total_points}</td></tr>`).join("")}</tbody></table>` : `<p class="muted">No scores yet.</p>`;
   } catch (err) {
     lb.innerHTML = `<p class="status error">${escapeHtml(err.message || "Could not load leaderboard.")}</p>`;
   }
