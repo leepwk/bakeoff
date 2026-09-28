@@ -149,9 +149,9 @@ async function fillAdminPlayerEditor() {
 
 async function refreshAdminPlayerData() {
   state.players = await bakeoffApi.getPlayers();
+  fillPlayerSelect(document.getElementById("playerSelect"));
   fillPlayerSelect(document.getElementById("photoPlayerSelect"));
   await fillAdminPlayerEditor();
-  if (typeof loadPlayerNameOptions === "function") await loadPlayerNameOptions();
 }
 
 async function updateAdminPlayerName(event) {
