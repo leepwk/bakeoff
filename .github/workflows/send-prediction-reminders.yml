@@ -1,6 +1,7 @@
 name: Send prediction reminders
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 20 * * 1"
       timezone: "Europe/London"
