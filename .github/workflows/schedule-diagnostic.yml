@@ -1,0 +1,26 @@
+name: Schedule diagnostic
+
+on:
+  schedule:
+    - cron: "3 21 28 9 *"
+    - cron: "13 21 28 9 *"
+    - cron: "23 21 28 9 *"
+    - cron: "33 21 28 9 *"
+    - cron: "43 21 28 9 *"
+    - cron: "53 21 28 9 *"
+
+permissions:
+  contents: read
+
+jobs:
+  prove-scheduler-fired:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record scheduled trigger
+        run: |
+          echo "GitHub schedule event fired"
+          echo "UTC runner time: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          echo "Event: $GITHUB_EVENT_NAME"
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Ref: $GITHUB_REF"
+          echo "SHA: $GITHUB_SHA"
