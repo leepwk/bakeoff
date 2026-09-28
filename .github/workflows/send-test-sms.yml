@@ -1,0 +1,47 @@
+name: Send test SMS
+
+on:
+  workflow_dispatch:
+    inputs:
+      player_id:
+        description: "Player ID to send the test SMS to"
+        required: true
+        type: string
+      message:
+        description: "Optional test message"
+        required: false
+        default: "Bakeoff SMS test. If you received this, Twilio is connected correctly."
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  send-test-sms:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install SMS dependencies
+        run: npm install --no-save @supabase/supabase-js twilio
+
+      - name: Send test SMS
+        run: node scripts/send-test-sms.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_API_KEY_SID: ${{ secrets.TWILIO_API_KEY_SID }}
+          TWILIO_API_KEY_SECRET: ${{ secrets.TWILIO_API_KEY_SECRET }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+          PLAYER_ID: ${{ inputs.player_id }}
+          MESSAGE_TEXT: ${{ inputs.message }}
