@@ -18,7 +18,7 @@
   <script defer src="./js/core/default-leaderboard.js?v=1"></script>
   <script defer src="./js/views/weekly-results.js?v=1"></script>
   <script defer src="./js/views/score-breakdown.js?v=1"></script>
-  <script defer src="./js/admin/admin-players.js?v=2"></script>
+  <script defer src="./js/admin/admin-players.js?v=3"></script>
   <script defer src="./js/views/randomise-picks.js?v=1"></script>
   <script defer src="./js/views/pick-history-tab.js?v=1"></script>
   <script defer src="./js/views/bakers.js?v=1"></script>
@@ -216,7 +216,14 @@
 
         <section id="adminPlayerSection" class="card">
           <h2>Manage players</h2>
-          <p class="muted">Edit a player's display name, replace their photo, delete their current avatar, or delete them.</p>
+          <p class="muted">Add players here, then edit their display name, photo, SMS settings, or remove them.</p>
+          <form id="adminAddPlayerForm" class="grid">
+            <label>New player name
+              <input id="adminNewPlayerName" type="text" required autocomplete="off">
+            </label>
+            <button type="submit">Add player</button>
+          </form>
+          <p id="adminAddPlayerStatus" class="status"></p>
           <form id="adminPlayerNameForm" class="grid">
             <label>Player
               <select id="adminPlayerSelect" required></select>
