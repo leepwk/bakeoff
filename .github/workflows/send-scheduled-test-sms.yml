@@ -1,9 +1,7 @@
 name: Send scheduled test SMS
 
 on:
-  schedule:
-    - cron: "45 21 * * 1"
-      timezone: "Europe/London"
+  workflow_dispatch:
 
 permissions:
   contents: read
