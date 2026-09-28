@@ -14,7 +14,7 @@ on:
         default: "Bakeoff Tipping Reminder - test schedule"
         type: string
   schedule:
-    - cron: "5 21 * * 1"
+    - cron: "25 21 * * 1"
       timezone: "Europe/London"
 
 permissions:
