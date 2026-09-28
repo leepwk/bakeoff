@@ -1,0 +1,39 @@
+name: Send prediction reminders
+
+on:
+  schedule:
+    - cron: "0 20 * * 1"
+      timezone: "Europe/London"
+    - cron: "0 18 * * 2"
+      timezone: "Europe/London"
+
+permissions:
+  contents: read
+
+jobs:
+  send-prediction-reminders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install SMS dependencies
+        run: npm install --no-save @supabase/supabase-js twilio
+
+      - name: Send prediction reminders
+        run: node scripts/send-sms-reminders.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_API_KEY_SID: ${{ secrets.TWILIO_API_KEY_SID }}
+          TWILIO_API_KEY_SECRET: ${{ secrets.TWILIO_API_KEY_SECRET }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
