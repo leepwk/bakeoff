@@ -1,0 +1,49 @@
+name: Send scheduled test SMS
+
+on:
+  workflow_dispatch:
+    inputs:
+      player_id:
+        description: "Player ID to send the test SMS to"
+        required: false
+        default: "a9139a5a-dc9d-4ddc-b588-8e9491b86a01"
+        type: string
+      message:
+        description: "Test message"
+        required: false
+        default: "Bakeoff Tipping Reminder - test schedule"
+        type: string
+  schedule:
+    - cron: "5 21 * * 1"
+      timezone: "Europe/London"
+
+permissions:
+  contents: read
+
+jobs:
+  send-scheduled-test-sms:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install SMS dependencies
+        run: npm install --no-save @supabase/supabase-js twilio
+
+      - name: Send scheduled test SMS
+        run: node scripts/send-test-sms.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_API_KEY_SID: ${{ secrets.TWILIO_API_KEY_SID }}
+          TWILIO_API_KEY_SECRET: ${{ secrets.TWILIO_API_KEY_SECRET }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+          PLAYER_ID: ${{ github.event.inputs.player_id || 'a9139a5a-dc9d-4ddc-b588-8e9491b86a01' }}
+          MESSAGE_TEXT: ${{ github.event.inputs.message || 'Bakeoff Tipping Reminder - test schedule' }}
