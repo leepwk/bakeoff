@@ -1,20 +1,8 @@
 name: Send scheduled test SMS
 
 on:
-  workflow_dispatch:
-    inputs:
-      player_id:
-        description: "Player ID to send the test SMS to"
-        required: false
-        default: "a9139a5a-dc9d-4ddc-b588-8e9491b86a01"
-        type: string
-      message:
-        description: "Test message"
-        required: false
-        default: "Bakeoff Tipping Reminder - test schedule"
-        type: string
   schedule:
-    - cron: "25 21 * * 1"
+    - cron: "45 21 * * 1"
       timezone: "Europe/London"
 
 permissions:
@@ -45,5 +33,5 @@ jobs:
           TWILIO_API_KEY_SID: ${{ secrets.TWILIO_API_KEY_SID }}
           TWILIO_API_KEY_SECRET: ${{ secrets.TWILIO_API_KEY_SECRET }}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
-          PLAYER_ID: ${{ github.event.inputs.player_id || 'a9139a5a-dc9d-4ddc-b588-8e9491b86a01' }}
-          MESSAGE_TEXT: ${{ github.event.inputs.message || 'Bakeoff Tipping Reminder - test schedule' }}
+          PLAYER_ID: "a9139a5a-dc9d-4ddc-b588-8e9491b86a01"
+          MESSAGE_TEXT: "Bakeoff Tipping Reminder - test schedule"
