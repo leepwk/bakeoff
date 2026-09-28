@@ -34,7 +34,7 @@ const twilioApiKeySid = requireEnv("TWILIO_API_KEY_SID");
 const twilioApiKeySecret = requireEnv("TWILIO_API_KEY_SECRET");
 const twilioPhoneNumber = requireEnv("TWILIO_PHONE_NUMBER");
 const playerId = requireEnv("PLAYER_ID");
-const messageText = process.env.MESSAGE_TEXT?.trim() || "Bakeoff SMS test. If you received this, Twilio is connected correctly.";
+const messageText = process.env.MESSAGE_TEXT?.trim() || "Bakeoff Reminder: please enter your picks for this week. :D Do not reply to this msg";
 const githubRunId = process.env.GITHUB_RUN_ID || null;
 
 const supabase = createClient(supabaseUrl, supabaseSecretKey, {
