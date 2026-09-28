@@ -10,7 +10,7 @@ on:
       message:
         description: "Optional test message"
         required: false
-        default: "Bakeoff SMS test. If you received this, Twilio is connected correctly."
+        default: "Bakeoff Reminder: please enter your picks for this week. :D Do not reply to this msg"
         type: string
 
 permissions:
