@@ -7,6 +7,26 @@ function requireEnv(name) {
   return value;
 }
 
+function errorMessage(error) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const parts = [
+      error.message,
+      error.details,
+      error.hint,
+      error.code ? `code=${error.code}` : null,
+      error.status ? `status=${error.status}` : null,
+    ].filter(Boolean);
+    if (parts.length) return parts.join(" | ");
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
 const supabaseUrl = requireEnv("SUPABASE_URL");
 const supabaseSecretKey = requireEnv("SUPABASE_SECRET_KEY");
 const twilioAccountSid = requireEnv("TWILIO_ACCOUNT_SID");
@@ -31,6 +51,7 @@ const client = twilio(twilioApiKeySid, twilioApiKeySecret, {
 let logId = null;
 
 try {
+  console.log("Looking up player...");
   const { data: player, error: playerError } = await supabase
     .from("players")
     .select("id, name")
@@ -39,6 +60,7 @@ try {
 
   if (playerError) throw playerError;
 
+  console.log("Loading SMS settings...");
   const { data: settings, error: settingsError } = await supabase
     .from("player_sms_settings")
     .select("player_id, phone_number, sms_reminders_enabled")
@@ -50,6 +72,7 @@ try {
 
   const attemptedAt = new Date().toISOString();
 
+  console.log("Creating pending SMS log...");
   const { data: logRow, error: logError } = await supabase
     .from("sms_messages")
     .insert({
@@ -69,6 +92,7 @@ try {
   if (logError) throw logError;
   logId = logRow.id;
 
+  console.log("Calling Twilio...");
   const message = await client.messages.create({
     from: twilioPhoneNumber,
     to: settings.phone_number,
@@ -89,7 +113,7 @@ try {
 
   console.log(`Test SMS sent to ${player.name} (${settings.phone_number}). Twilio SID: ${message.sid}`);
 } catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = errorMessage(error);
 
   if (logId) {
     const { error: updateError } = await supabase
