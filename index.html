@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bake Off Tipping</title>
   <link rel="icon" type="image/x-icon" href="./assets/favicon.ico">
-  <link rel="stylesheet" href="./css/styles.css?v=1" />
+  <link rel="stylesheet" href="./css/styles.css?v=2" />
   <style>
     .header-logo{display:block;width:min(100%,1120px);height:auto}.header-title-fallback{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./js/core/window.js?v=1"></script>
-  <script defer src="./js/core/api.js?v=2"></script>
+  <script defer src="./js/core/api.js?v=3"></script>
   <script defer src="./js/core/week-locks.js?v=1"></script>
   <script defer src="./js/core/app.js?v=11"></script>
   <script defer src="./js/views/pick-history.js?v=1"></script>
   <script defer src="./js/core/default-leaderboard.js?v=1"></script>
   <script defer src="./js/views/weekly-results.js?v=1"></script>
   <script defer src="./js/views/score-breakdown.js?v=1"></script>
-  <script defer src="./js/admin/admin-players.js?v=1"></script>
+  <script defer src="./js/admin/admin-players.js?v=2"></script>
   <script defer src="./js/views/player-combo.js?v=1"></script>
   <script defer src="./js/views/randomise-picks.js?v=1"></script>
   <script defer src="./js/views/pick-history-tab.js?v=1"></script>
@@ -240,6 +240,26 @@
             </label>
             <button type="submit">Update photo</button>
           </form>
+          <section class="admin-player-sms-tools">
+            <h3>SMS reminders</h3>
+            <form id="adminPlayerSmsForm" class="grid">
+              <label>Mobile number
+                <input id="adminPlayerPhoneNumber" type="tel" autocomplete="tel" placeholder="07700 900123 or +447700900123">
+                <span class="hint">UK mobile numbers entered as 07... are saved as +44...</span>
+              </label>
+              <label class="checkbox-option admin-sms-checkbox">
+                <input id="adminPlayerSmsEnabled" type="checkbox">
+                <span>SMS reminders enabled</span>
+              </label>
+              <button type="submit">Save SMS settings</button>
+            </form>
+            <p id="adminPlayerSmsStatus" class="status"></p>
+
+            <h3>SMS history</h3>
+            <div id="adminPlayerSmsHistory">
+              <p class="muted">Choose a player to see their SMS history.</p>
+            </div>
+          </section>
           <p id="adminPlayerStatus" class="status"></p>
         </section>
       </section>
