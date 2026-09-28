@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import twilio from "twilio";
 
-const DEFAULT_MESSAGE = "Bakeoff Tipping Reminder: please enter your picks for this week - https://leepwk.github.io/bakeoff/ :) Phil";
+const DEFAULT_MESSAGE = "Bakeoff Tipping Reminder: please enter your picks for this week - https://leepwk.github.io/bakeoff/ :D Phil";
 
 function requireEnv(name) {
   const value = process.env[name];
