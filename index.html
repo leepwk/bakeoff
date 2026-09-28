@@ -13,13 +13,12 @@
   <script defer src="./js/core/window.js?v=1"></script>
   <script defer src="./js/core/api.js?v=3"></script>
   <script defer src="./js/core/week-locks.js?v=1"></script>
-  <script defer src="./js/core/app.js?v=11"></script>
+  <script defer src="./js/core/app.js?v=12"></script>
   <script defer src="./js/views/pick-history.js?v=1"></script>
   <script defer src="./js/core/default-leaderboard.js?v=1"></script>
   <script defer src="./js/views/weekly-results.js?v=1"></script>
   <script defer src="./js/views/score-breakdown.js?v=1"></script>
   <script defer src="./js/admin/admin-players.js?v=2"></script>
-  <script defer src="./js/views/player-combo.js?v=1"></script>
   <script defer src="./js/views/randomise-picks.js?v=1"></script>
   <script defer src="./js/views/pick-history-tab.js?v=1"></script>
   <script defer src="./js/views/bakers.js?v=1"></script>
@@ -70,14 +69,13 @@
         <div class="section-title">
           <div>
             <h2>Enter or update picks</h2>
-            <p class="muted">Choose an existing player, or type a new name to create one.</p>
+            <p class="muted">Choose your player from the current player list.</p>
           </div>
           <button id="loadExistingButton" class="secondary" type="button">Load my picks</button>
         </div>
         <form id="predictionForm" class="grid">
-          <label>Your player name
-            <input id="playerName" type="text" required autocomplete="off" list="playerNameOptions">
-            <datalist id="playerNameOptions"></datalist>
+          <label>Player
+            <select id="playerSelect" required></select>
           </label>
           <label>Week
             <select id="weekSelect" required></select>
