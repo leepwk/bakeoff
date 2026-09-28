@@ -10,7 +10,7 @@ on:
       message:
         description: "Optional test message"
         required: false
-        default: "Bakeoff Reminder: please enter your picks for this week. :D Do not reply to this msg"
+        default: "Bakeoff Tipping Reminder: please enter your picks for this week. :D Phil - PS. do not reply to this text"
         type: string
 
 permissions:
