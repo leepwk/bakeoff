@@ -154,6 +154,37 @@ async function refreshAdminPlayerData() {
   await fillAdminPlayerEditor();
 }
 
+async function addAdminPlayer(event) {
+  event.preventDefault();
+  if (!isAdmin()) return setText("adminAddPlayerStatus", "Admin access required.", true);
+
+  const input = document.getElementById("adminNewPlayerName");
+  const name = normaliseName(input?.value);
+  if (!name) return setText("adminAddPlayerStatus", "Enter a player name.", true);
+
+  const duplicate = state.players.some((player) => normaliseName(player.name).toLowerCase() === name.toLowerCase());
+  if (duplicate) return setText("adminAddPlayerStatus", "That player already exists.", true);
+
+  try {
+    setText("adminAddPlayerStatus", "Adding...");
+    const player = await bakeoffApi.createPlayer(name);
+    if (input) input.value = "";
+
+    await refreshAdminPlayerData();
+
+    const select = document.getElementById("adminPlayerSelect");
+    if (select) {
+      select.value = player.id;
+      await fillAdminPlayerEditor();
+    }
+
+    setText("adminAddPlayerStatus", "Player added.");
+    await renderLeaderboard();
+  } catch (err) {
+    setText("adminAddPlayerStatus", err.message || "Could not add player.", true);
+  }
+}
+
 async function updateAdminPlayerName(event) {
   event.preventDefault();
   if (!isAdmin()) return setText("adminPlayerStatus", "Admin access required.", true);
@@ -291,6 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("adminPlayerSelect")?.addEventListener("change", () => {
     fillAdminPlayerEditor().catch((err) => setText("adminPlayerSmsStatus", err.message || "Could not load SMS settings.", true));
   });
+  document.getElementById("adminAddPlayerForm")?.addEventListener("submit", addAdminPlayer);
   document.getElementById("adminPlayerNameForm")?.addEventListener("submit", updateAdminPlayerName);
   document.getElementById("adminPlayerSmsForm")?.addEventListener("submit", updateAdminPlayerSms);
   document.getElementById("adminPlayerPhotoForm")?.addEventListener("submit", uploadAdminPlayerPhoto);
