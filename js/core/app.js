@@ -53,10 +53,6 @@ function normaliseName(name) {
   return (name || "").trim().replace(/\s+/g, " ");
 }
 
-function normaliseNameKey(name) {
-  return normaliseName(name).toLowerCase();
-}
-
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>'\"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
 }
@@ -140,11 +136,11 @@ function renderPredictionForm() {
     emptyLabel: "No open weeks",
   });
 
+  fillPlayerSelect($("playerSelect"));
   fillBakerSelect($("technicalGuess"), state.activeBakers);
   fillBakerSelect($("starBakerGuess"), state.activeBakers);
   fillBakerSelect($("eliminatedGuess"), state.activeBakers);
   fillBakerSelect($("handshakeGuess"), state.activeBakers, { blankLabel: "No handshake guess" });
-  if (typeof loadPlayerNameOptions === "function") loadPlayerNameOptions();
 }
 
 function renderAdminForms() {
@@ -260,24 +256,12 @@ async function toggleWeekLock(event) {
   }
 }
 
-async function findPlayerByName(name) {
-  const cleanName = normaliseName(name);
-  if (!cleanName) throw new Error("Enter your player name.");
-  const players = state.players.length ? state.players : await bakeoffApi.getPlayers();
-  return players.find((player) => normaliseNameKey(player.name) === normaliseNameKey(cleanName)) || null;
-}
-
-async function getOrCreatePlayer(name) {
-  const cleanName = normaliseName(name);
-  const existing = await findPlayerByName(cleanName);
-  if (existing) return existing;
-  return bakeoffApi.createPlayer(cleanName);
-}
-
 async function savePrediction(event) {
   event.preventDefault();
 
+  const playerId = $("playerSelect").value;
   const weekId = $("weekSelect").value;
+  if (!playerId) return setText("predictionStatus", "Choose a player.", true);
   if (!weekId) return setText("predictionStatus", "No open weeks are available for picks.", true);
   if (weekLocks.isLocked(state.weeks, weekId)) {
     return setText("predictionStatus", "This week is locked, so picks can no longer be updated.", true);
@@ -285,9 +269,8 @@ async function savePrediction(event) {
 
   setText("predictionStatus", "Saving...");
   try {
-    const player = await getOrCreatePlayer($("playerName").value);
     await bakeoffApi.savePrediction({
-      player_id: player.id,
+      player_id: playerId,
       week_id: weekId,
       technical_winner_baker_id: $("technicalGuess").value,
       star_baker_id: $("starBakerGuess").value,
@@ -303,15 +286,14 @@ async function savePrediction(event) {
 }
 
 async function loadExistingPrediction() {
+  const playerId = $("playerSelect").value;
   const weekId = $("weekSelect").value;
+  if (!playerId) return setText("predictionStatus", "Choose a player.", true);
   if (!weekId) return setText("predictionStatus", "No open weeks are available for picks.", true);
 
   setText("predictionStatus", "Loading...");
   try {
-    const player = await findPlayerByName($("playerName").value);
-    if (!player) throw new Error("No picks found for that player name yet.");
-
-    const prediction = await bakeoffApi.getPrediction(player.id, weekId);
+    const prediction = await bakeoffApi.getPrediction(playerId, weekId);
     if (!prediction) throw new Error("No picks found for this week yet.");
 
     $("technicalGuess").value = prediction.technical_winner_baker_id || "";
