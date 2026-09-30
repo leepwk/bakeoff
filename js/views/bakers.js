@@ -33,7 +33,7 @@ function renderBakersDirectory() {
   el.innerHTML = `
     <div class="baker-grid">
       ${state.bakers.map((baker) => `
-        <article class="baker-card">
+        <article class="baker-card ${baker.is_active ? "" : "baker-card-eliminated"}">
           <div class="baker-card-header">
             ${bakerAvatarHtml(baker)}
             <div class="baker-card-heading">
