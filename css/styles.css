@@ -141,4 +141,4 @@ footer { padding: 12px 0 36px; color: var(--muted); }
 .admin-player-sms-tools table { margin-top: 10px; }
 
 /* Keep the non-editable current week visually consistent with other form fields. */
-#weekSelect:disabled { opacity: 1; color: var(--ink); -webkit-text-fill-color: var(--ink); cursor: default; }
+#weekSelect:disabled { opacity: 1; color: #999095; -webkit-text-fill-color: #999095; cursor: default; }
