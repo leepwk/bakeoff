@@ -129,13 +129,11 @@ async function loadData() {
 
 function renderPredictionForm() {
   const currentWeek = state.weeks.find((week) => week.is_current && !week.is_locked);
-  const select = $("weekSelect");
-  select.innerHTML = "";
-  if (currentWeek) {
-    select.appendChild(option(currentWeek.id, weekLocks.label(currentWeek, { showLockedLabel: false }), true));
-  } else {
-    select.appendChild(option("", "No open current week", true));
-  }
+  const weekField = $("weekSelect");
+  weekField.value = currentWeek
+    ? weekLocks.label(currentWeek, { showLockedLabel: false })
+    : "No open current week";
+  weekField.dataset.weekId = currentWeek?.id || "";
 
   fillPlayerSelect($("playerSelect"));
   fillBakerSelect($("technicalGuess"), state.activeBakers);
@@ -261,7 +259,7 @@ async function savePrediction(event) {
   event.preventDefault();
 
   const playerId = $("playerSelect").value;
-  const weekId = $("weekSelect").value;
+  const weekId = $("weekSelect").dataset.weekId || "";
   if (!playerId) return setText("predictionStatus", "Choose a player.", true);
   const currentWeek = state.weeks.find((week) => week.is_current);
   if (!currentWeek || currentWeek.is_locked) {
@@ -300,7 +298,7 @@ async function savePrediction(event) {
 
 async function loadExistingPrediction() {
   const playerId = $("playerSelect").value;
-  const weekId = $("weekSelect").value;
+  const weekId = $("weekSelect").dataset.weekId || "";
   if (!playerId) return setText("predictionStatus", "Choose a player.", true);
   if (!weekId) return setText("predictionStatus", "No open weeks are available for picks.", true);
 
