@@ -139,3 +139,6 @@ footer { padding: 12px 0 36px; color: var(--muted); }
 .admin-player-sms-tools { margin-top: 24px; padding-top: 6px; border-top: 1px solid var(--border); }
 .admin-sms-checkbox { align-self: end; min-height: 46px; }
 .admin-player-sms-tools table { margin-top: 10px; }
+
+/* Keep the non-editable current week visually consistent with other form fields. */
+#weekSelect:disabled { opacity: 1; color: var(--ink); -webkit-text-fill-color: var(--ink); cursor: default; }
