@@ -128,13 +128,14 @@ async function loadData() {
 }
 
 function renderPredictionForm() {
-  const selectedWeekId = currentWeekId({ includeLocked: false });
-  fillWeekSelect($("weekSelect"), {
-    selectedWeekId,
-    includeLocked: false,
-    showLockedLabel: false,
-    emptyLabel: "No open weeks",
-  });
+  const currentWeek = state.weeks.find((week) => week.is_current && !week.is_locked);
+  const select = $("weekSelect");
+  select.innerHTML = "";
+  if (currentWeek) {
+    select.appendChild(option(currentWeek.id, weekLocks.label(currentWeek, { showLockedLabel: false }), true));
+  } else {
+    select.appendChild(option("", "No open current week", true));
+  }
 
   fillPlayerSelect($("playerSelect"));
   fillBakerSelect($("technicalGuess"), state.activeBakers);
@@ -262,13 +263,25 @@ async function savePrediction(event) {
   const playerId = $("playerSelect").value;
   const weekId = $("weekSelect").value;
   if (!playerId) return setText("predictionStatus", "Choose a player.", true);
-  if (!weekId) return setText("predictionStatus", "No open weeks are available for picks.", true);
-  if (weekLocks.isLocked(state.weeks, weekId)) {
-    return setText("predictionStatus", "This week is locked, so picks can no longer be updated.", true);
+  const currentWeek = state.weeks.find((week) => week.is_current);
+  if (!currentWeek || currentWeek.is_locked) {
+    return setText("predictionStatus", "No open current week is available for picks.", true);
+  }
+  if (weekId !== currentWeek.id) {
+    return setText("predictionStatus", "Picks can only be saved for the current week.", true);
   }
 
   setText("predictionStatus", "Saving...");
   try {
+    // Recheck the admin-selected week before submitting, in case it changed since loading.
+    const latestWeeks = await bakeoffApi.getWeeks();
+    const latestCurrentWeek = latestWeeks.find((week) => week.is_current);
+    if (!latestCurrentWeek || latestCurrentWeek.is_locked) {
+      throw new Error("No open current week is available for picks.");
+    }
+    if (weekId !== latestCurrentWeek.id) {
+      throw new Error("The current week has changed. Refresh the page before saving picks.");
+    }
     await bakeoffApi.savePrediction({
       player_id: playerId,
       week_id: weekId,
