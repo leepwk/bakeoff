@@ -152,6 +152,8 @@ function renderAdminForms() {
   updateWeekLockButton();
 
   fillBakerSelect($("actualTechnical"), state.bakers, { blankLabel: "Choose baker" });
+  fillBakerSelect($("actualTechnicalSecond"), state.bakers, { blankLabel: "Choose baker" });
+  fillBakerSelect($("actualTechnicalThird"), state.bakers, { blankLabel: "Choose baker" });
   fillBakerSelect($("actualStarBaker"), state.bakers, { blankLabel: "Choose baker" });
   fillBakerSelect($("actualEliminated"), state.bakers, { blankLabel: "Choose baker" });
   renderActualHandshakeCheckboxes(state.bakers);
