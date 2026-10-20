@@ -269,6 +269,12 @@ async function savePrediction(event) {
     return setText("predictionStatus", "Picks can only be saved for the current week.", true);
   }
 
+  const starBakerId = $("starBakerGuess").value;
+  const eliminatedBakerId = $("eliminatedGuess").value;
+  if (starBakerId && eliminatedBakerId && starBakerId === eliminatedBakerId) {
+    return setText("predictionStatus", "Star Baker and Eliminated cannot be the same baker.", true);
+  }
+
   setText("predictionStatus", "Saving...");
   try {
     // Recheck the admin-selected week before submitting, in case it changed since loading.
@@ -284,8 +290,8 @@ async function savePrediction(event) {
       player_id: playerId,
       week_id: weekId,
       technical_winner_baker_id: $("technicalGuess").value,
-      star_baker_id: $("starBakerGuess").value,
-      eliminated_baker_id: $("eliminatedGuess").value,
+      star_baker_id: starBakerId,
+      eliminated_baker_id: eliminatedBakerId,
       handshake_baker_id: $("handshakeGuess").value || null,
       updated_at: new Date().toISOString(),
     });
