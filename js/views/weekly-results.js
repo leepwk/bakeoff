@@ -58,7 +58,7 @@ async function renderActualResults() {
   try {
     const resultsRes = await state.supabase
       .from("results")
-      .select("id, week_id, technical_winner_baker_id, star_baker_id");
+      .select("id, week_id, technical_winner_baker_id, technical_second_baker_id, technical_third_baker_id, star_baker_id");
     if (resultsRes.error) throw resultsRes.error;
 
     const results = resultsRes.data || [];
@@ -96,7 +96,7 @@ async function renderActualResults() {
     };
 
     const rows = results
-      .filter((result) => result.technical_winner_baker_id || result.star_baker_id ||
+      .filter((result) => result.technical_winner_baker_id || result.technical_second_baker_id || result.technical_third_baker_id || result.star_baker_id ||
         (eliminations.get(result.id) || []).length || (handshakes.get(result.id) || []).length)
       .sort((a, b) => {
         const weekA = state.weeks.find((week) => week.id === a.week_id)?.week_number || 0;
@@ -105,7 +105,7 @@ async function renderActualResults() {
       });
 
     el.innerHTML = rows.length
-      ? `<h3>Results</h3><table><thead><tr><th>Week</th><th>Technical</th><th>Star baker</th><th>Eliminated</th><th>Hollywood handshakes</th></tr></thead><tbody>${rows.map((result) => `<tr><td>${escapeHtml(weekLabel(result.week_id))}</td><td>${escapeHtml(bakerName(result.technical_winner_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.star_baker_id) || "Not set")}</td><td>${escapeHtml((eliminations.get(result.id) || []).join(", ") || "None")}</td><td>${escapeHtml((handshakes.get(result.id) || []).join(", ") || "None")}</td></tr>`).join("")}</tbody></table>`
+      ? `<h3>Results</h3><table><thead><tr><th>Week</th><th>Technical 1st</th><th>Technical 2nd</th><th>Technical 3rd</th><th>Star baker</th><th>Eliminated</th><th>Hollywood handshakes</th></tr></thead><tbody>${rows.map((result) => `<tr><td>${escapeHtml(weekLabel(result.week_id))}</td><td>${escapeHtml(bakerName(result.technical_winner_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.technical_second_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.technical_third_baker_id) || "Not set")}</td><td>${escapeHtml(bakerName(result.star_baker_id) || "Not set")}</td><td>${escapeHtml((eliminations.get(result.id) || []).join(", ") || "None")}</td><td>${escapeHtml((handshakes.get(result.id) || []).join(", ") || "None")}</td></tr>`).join("")}</tbody></table>`
       : "";
   } catch (err) {
     el.innerHTML = `<p class="status error">${escapeHtml(err.message || "Could not load actual results.")}</p>`;
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bakeoffApi.getResult = async function (weekId) {
     const res = await state.supabase
       .from("results")
-      .select("id, technical_winner_baker_id, star_baker_id")
+      .select("id, technical_winner_baker_id, technical_second_baker_id, technical_third_baker_id, star_baker_id")
       .eq("week_id", weekId)
       .maybeSingle();
     if (res.error) throw res.error;
@@ -150,15 +150,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isAdmin()) renderActualEliminationCheckboxes(state.bakers);
   };
 
+  let loadedResultsWeekId = null;
+  const resultSaveButton = () => document.querySelector('#resultForm button[type="submit"]');
+
   saveResults = async function (event) {
     event.preventDefault();
     if (!isAdmin()) return setText("resultStatus", "Admin access required.", true);
+    const weekId = $("resultWeekSelect").value;
+    if (loadedResultsWeekId !== weekId) return setText("resultStatus", "Results must finish loading before saving.", true);
+    const placements = [$("actualTechnical").value, $("actualTechnicalSecond").value, $("actualTechnicalThird").value].filter(Boolean);
+    if (new Set(placements).size !== placements.length) return setText("resultStatus", "Technical 1st, 2nd and 3rd must be different bakers.", true);
     setText("resultStatus", "Saving...");
+    if (resultSaveButton()) resultSaveButton().disabled = true;
 
     try {
       const result = await bakeoffApi.saveResult({
         week_id: $("resultWeekSelect").value,
         technical_winner_baker_id: $("actualTechnical").value || null,
+        technical_second_baker_id: $("actualTechnicalSecond").value || null,
+        technical_third_baker_id: $("actualTechnicalThird").value || null,
         star_baker_id: $("actualStarBaker").value || null,
         updated_at: new Date().toISOString(),
       });
@@ -171,28 +181,34 @@ document.addEventListener("DOMContentLoaded", () => {
       await renderLeaderboardPage();
     } catch (err) {
       setText("resultStatus", err.message || "Could not save results.", true);
+    } finally {
+      if (resultSaveButton()) resultSaveButton().disabled = false;
     }
   };
 
   loadResultForWeek = async function () {
     if (!isAdmin()) return;
+    const weekId = $("resultWeekSelect").value;
+    loadedResultsWeekId = null;
+    if (resultSaveButton()) resultSaveButton().disabled = true;
+    setText("resultStatus", "Loading results...");
     try {
-      const result = await bakeoffApi.getResult($("resultWeekSelect").value);
+      const result = await bakeoffApi.getResult(weekId);
+      const [handshakeIds, eliminationIds] = result?.id
+        ? await Promise.all([bakeoffApi.getResultHandshakeIds(result.id), bakeoffApi.getResultEliminationIds(result.id)])
+        : [[], []];
+      if ($("resultWeekSelect").value !== weekId) return;
       $("actualTechnical").value = result?.technical_winner_baker_id || "";
+      $("actualTechnicalSecond").value = result?.technical_second_baker_id || "";
+      $("actualTechnicalThird").value = result?.technical_third_baker_id || "";
       $("actualStarBaker").value = result?.star_baker_id || "";
-      setSelectedActualHandshakeIds([]);
-      setSelectedActualEliminationIds([]);
-
-      if (result?.id) {
-        const [handshakeIds, eliminationIds] = await Promise.all([
-          bakeoffApi.getResultHandshakeIds(result.id),
-          bakeoffApi.getResultEliminationIds(result.id),
-        ]);
-        setSelectedActualHandshakeIds(handshakeIds);
-        setSelectedActualEliminationIds(eliminationIds);
-      }
+      setSelectedActualHandshakeIds(handshakeIds);
+      setSelectedActualEliminationIds(eliminationIds);
+      loadedResultsWeekId = weekId;
+      setText("resultStatus", "");
+      if (resultSaveButton()) resultSaveButton().disabled = false;
     } catch (err) {
-      setText("resultStatus", err.message || "Could not load result.", true);
+      if ($("resultWeekSelect").value === weekId) setText("resultStatus", err.message || "Could not load result.", true);
     }
   };
 
@@ -209,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const [predictionsRes, resultsRes] = await Promise.all([
         state.supabase.from("predictions").select("player_id, week_id, technical_winner_baker_id, star_baker_id, eliminated_baker_id, handshake_baker_id, players(name)"),
-        state.supabase.from("results").select("id, week_id, technical_winner_baker_id, star_baker_id"),
+        state.supabase.from("results").select("id, week_id, technical_winner_baker_id, technical_second_baker_id, technical_third_baker_id, star_baker_id"),
       ]);
       if (predictionsRes.error) throw predictionsRes.error;
       if (resultsRes.error) throw resultsRes.error;
@@ -240,7 +256,11 @@ document.addEventListener("DOMContentLoaded", () => {
           playerName: prediction.players?.name || "Unknown player",
           technical: 0, star: 0, eliminated: 0, handshake: 0,
         };
-        if (prediction.technical_winner_baker_id === result.technical_winner_baker_id) row.technical += 2;
+        if (prediction.technical_winner_baker_id) {
+          if (prediction.technical_winner_baker_id === result.technical_winner_baker_id) row.technical += 3;
+          else if (prediction.technical_winner_baker_id === result.technical_second_baker_id) row.technical += 2;
+          else if (prediction.technical_winner_baker_id === result.technical_third_baker_id) row.technical += 1;
+        }
         if (prediction.star_baker_id === result.star_baker_id) row.star += 2;
         if ((eliminations.get(result.id) || new Set()).has(prediction.eliminated_baker_id)) row.eliminated += 2;
         if ((handshakes.get(result.id) || new Set()).has(prediction.handshake_baker_id)) row.handshake += 5;
