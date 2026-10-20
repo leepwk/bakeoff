@@ -16,7 +16,7 @@ async function renderScoreBreakdown() {
         .select("player_id, week_id, technical_winner_baker_id, star_baker_id, eliminated_baker_id, handshake_baker_id, players(name)"),
       state.supabase
         .from("results")
-        .select("id, week_id, technical_winner_baker_id, star_baker_id, eliminated_baker_id"),
+        .select("id, week_id, technical_winner_baker_id, technical_second_baker_id, technical_third_baker_id, star_baker_id, eliminated_baker_id"),
     ]);
 
     if (predictionsRes.error) throw predictionsRes.error;
@@ -57,7 +57,11 @@ async function renderScoreBreakdown() {
         handshake: 0,
       };
 
-      if (prediction.technical_winner_baker_id && prediction.technical_winner_baker_id === result.technical_winner_baker_id) row.technical += 2;
+      if (prediction.technical_winner_baker_id) {
+        if (prediction.technical_winner_baker_id === result.technical_winner_baker_id) row.technical += 3;
+        else if (prediction.technical_winner_baker_id === result.technical_second_baker_id) row.technical += 2;
+        else if (prediction.technical_winner_baker_id === result.technical_third_baker_id) row.technical += 1;
+      }
       if (prediction.star_baker_id && prediction.star_baker_id === result.star_baker_id) row.star += 2;
       if (prediction.eliminated_baker_id && prediction.eliminated_baker_id === result.eliminated_baker_id) row.eliminated += 2;
 
