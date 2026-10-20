@@ -11,13 +11,13 @@
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="./js/core/window.js?v=1"></script>
-  <script defer src="./js/core/api.js?v=3"></script>
+  <script defer src="./js/core/api.js?v=4"></script>
   <script defer src="./js/core/week-locks.js?v=1"></script>
-  <script defer src="./js/core/app.js?v=15"></script>
+  <script defer src="./js/core/app.js?v=16"></script>
   <script defer src="./js/views/pick-history.js?v=1"></script>
   <script defer src="./js/core/default-leaderboard.js?v=1"></script>
-  <script defer src="./js/views/weekly-results.js?v=1"></script>
-  <script defer src="./js/views/score-breakdown.js?v=1"></script>
+  <script defer src="./js/views/weekly-results.js?v=2"></script>
+  <script defer src="./js/views/score-breakdown.js?v=2"></script>
   <script defer src="./js/admin/admin-players.js?v=3"></script>
   <script defer src="./js/views/randomise-picks.js?v=2"></script>
   <script defer src="./js/views/pick-history-tab.js?v=1"></script>
@@ -196,8 +196,14 @@
             <label>Week
               <select id="resultWeekSelect" required></select>
             </label>
-            <label>Actual technical winner
+            <label>Actual technical 1st
               <select id="actualTechnical"></select>
+            </label>
+            <label>Actual technical 2nd
+              <select id="actualTechnicalSecond"></select>
+            </label>
+            <label>Actual technical 3rd
+              <select id="actualTechnicalThird"></select>
             </label>
             <label>Actual star baker
               <select id="actualStarBaker"></select>
@@ -272,7 +278,7 @@
   </main>
 
   <footer>
-    <p>Scoring: 2 points for correctly guessing technical, star baker, and eliminated baker. 5 points for a correct Hollywood handshake guess</p>
+    <p>Scoring: Technical 1st = 3 points, 2nd = 2, 3rd = 1. Star baker and eliminated = 2 each. Hollywood handshake = 5.</p>
   </footer>
 </body>
 </html>
