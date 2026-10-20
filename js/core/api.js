@@ -139,7 +139,7 @@ window.bakeoffApi = {
   async getResult(weekId) {
     const res = await state.supabase
       .from("results")
-      .select("id, technical_winner_baker_id, star_baker_id, eliminated_baker_id")
+      .select("id, technical_winner_baker_id, technical_second_baker_id, technical_third_baker_id, star_baker_id, eliminated_baker_id")
       .eq("week_id", weekId)
       .maybeSingle();
     if (res.error) throw res.error;
