@@ -1,7 +1,9 @@
-function randomisePickSelect(select, { includeBlank = false } = {}) {
+function randomisePickSelect(select, { includeBlank = false, excludeId = null } = {}) {
   if (!select) return false;
 
-  const choices = Array.from(select.options).filter((option) => includeBlank || Boolean(option.value));
+  const choices = Array.from(select.options).filter((option) =>
+    (includeBlank || Boolean(option.value)) && option.value !== excludeId
+  );
   if (!choices.length) return false;
 
   const choice = choices[Math.floor(Math.random() * choices.length)];
@@ -10,10 +12,26 @@ function randomisePickSelect(select, { includeBlank = false } = {}) {
 }
 
 function randomisePredictionPicks() {
+  const starSelect = document.getElementById("starBakerGuess");
+  const eliminatedSelect = document.getElementById("eliminatedGuess");
+  const eligibleBakers = starSelect
+    ? Array.from(starSelect.options).filter((option) => Boolean(option.value))
+    : [];
+
+  if (eligibleBakers.length < 2) {
+    const status = document.getElementById("predictionStatus");
+    if (status) {
+      status.textContent = "At least two active bakers are needed to randomise picks.";
+      status.classList.add("error");
+    }
+    return;
+  }
+
+  const starSelected = randomisePickSelect(starSelect);
   const selectionsMade = [
     randomisePickSelect(document.getElementById("technicalGuess")),
-    randomisePickSelect(document.getElementById("starBakerGuess")),
-    randomisePickSelect(document.getElementById("eliminatedGuess")),
+    starSelected,
+    starSelected && randomisePickSelect(eliminatedSelect, { excludeId: starSelect.value }),
     randomisePickSelect(document.getElementById("handshakeGuess"), { includeBlank: true }),
   ];
 
