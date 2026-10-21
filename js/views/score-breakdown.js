@@ -10,20 +10,21 @@ async function renderScoreBreakdown() {
   }
 
   try {
-    const [predictionsRes, resultsRes] = await Promise.all([
+    const [predictionsRes, resultsRes, leaderboardRes] = await Promise.all([
       state.supabase
         .from("predictions")
         .select("player_id, week_id, technical_winner_baker_id, star_baker_id, eliminated_baker_id, handshake_baker_id, players(name)"),
       state.supabase
         .from("results")
         .select("id, week_id, technical_winner_baker_id, technical_second_baker_id, technical_third_baker_id, star_baker_id, eliminated_baker_id"),
+      bakeoffApi.getLeaderboard(),
     ]);
 
     if (predictionsRes.error) throw predictionsRes.error;
     if (resultsRes.error) throw resultsRes.error;
 
     const results = resultsRes.data || [];
-    if (!results.length) {
+    if (!results.length && !leaderboardRes.length) {
       el.innerHTML = "";
       return;
     }
@@ -71,12 +72,13 @@ async function renderScoreBreakdown() {
       totalsByPlayer.set(prediction.player_id, row);
     }
 
-    const rows = Array.from(totalsByPlayer.values())
-      .map((row) => ({ ...row, total: row.technical + row.star + row.eliminated + row.handshake }))
-      .sort((a, b) => b.total - a.total || a.playerName.localeCompare(b.playerName));
+    const rows = leaderboardRes.map((leader) => {
+      const row = totalsByPlayer.get(leader.player_id) || { technical: 0, star: 0, eliminated: 0, handshake: 0 };
+      return { ...row, playerName: leader.player_name, total: leader.total_points, correctPicks: leader.correct_picks };
+    }).sort((a, b) => b.total - a.total || b.correctPicks - a.correctPicks || a.playerName.localeCompare(b.playerName));
 
     el.innerHTML = rows.length
-      ? `<h3>Score breakdown</h3><table><thead><tr><th>Player</th><th>Technical</th><th>Star baker</th><th>Eliminated</th><th>Handshake</th><th>Total</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${escapeHtml(row.playerName)}</td><td>${row.technical}</td><td>${row.star}</td><td>${row.eliminated}</td><td>${row.handshake}</td><td>${row.total}</td></tr>`).join("")}</tbody></table>`
+      ? `<h3>Score breakdown</h3><table><thead><tr><th>Player</th><th>Technical</th><th>Star baker</th><th>Eliminated</th><th>Handshake</th><th>Total</th><th>Correct Picks</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${escapeHtml(row.playerName)}</td><td>${row.technical}</td><td>${row.star}</td><td>${row.eliminated}</td><td>${row.handshake}</td><td>${row.total}</td><td>${row.correctPicks}</td></tr>`).join("")}</tbody></table>`
       : "";
   } catch (err) {
     el.innerHTML = `<p class="status error">${escapeHtml(err.message || "Could not load score breakdown.")}</p>`;
