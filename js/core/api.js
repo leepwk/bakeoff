@@ -122,7 +122,7 @@ window.bakeoffApi = {
   },
 
   async getLeaderboard() {
-    const res = await state.supabase.from("leaderboard").select("player_name,total_points,position,avatar_path");
+    const res = await state.supabase.from("leaderboard").select("player_id,player_name,total_points,correct_picks,position,avatar_path");
     if (res.error) throw res.error;
     return res.data || [];
   },
