@@ -127,6 +127,12 @@ async function loadData() {
   state.activeBakers = state.bakers.filter((b) => b.is_active);
 }
 
+function isFinalWeek(week, weeks = state.weeks) {
+  if (!week || !weeks.length) return false;
+  const finalWeekNumber = Math.max(...weeks.map((item) => Number(item.week_number)));
+  return Number(week.week_number) === finalWeekNumber;
+}
+
 function renderPredictionForm() {
   const currentWeek = state.weeks.find((week) => week.is_current && !week.is_locked);
   const weekField = $("weekSelect");
@@ -138,7 +144,12 @@ function renderPredictionForm() {
   fillPlayerSelect($("playerSelect"));
   fillBakerSelect($("technicalGuess"), state.activeBakers);
   fillBakerSelect($("starBakerGuess"), state.activeBakers);
-  fillBakerSelect($("eliminatedGuess"), state.activeBakers);
+  const finalWeek = isFinalWeek(currentWeek);
+  const eliminatedSelect = $("eliminatedGuess");
+  fillBakerSelect(eliminatedSelect, state.activeBakers, {
+    blankLabel: finalWeek ? "No elimination" : "Choose baker",
+  });
+  eliminatedSelect.required = !finalWeek;
   fillBakerSelect($("handshakeGuess"), state.activeBakers, { blankLabel: "No handshake guess" });
 }
 
@@ -273,6 +284,9 @@ async function savePrediction(event) {
 
   const starBakerId = $("starBakerGuess").value;
   const eliminatedBakerId = $("eliminatedGuess").value;
+  if (!isFinalWeek(currentWeek) && !eliminatedBakerId) {
+    return setText("predictionStatus", "Choose an eliminated baker.", true);
+  }
   if (starBakerId && eliminatedBakerId && starBakerId === eliminatedBakerId) {
     return setText("predictionStatus", "Star Baker and Eliminated cannot be the same baker.", true);
   }
@@ -288,12 +302,15 @@ async function savePrediction(event) {
     if (weekId !== latestCurrentWeek.id) {
       throw new Error("The current week has changed. Refresh the page before saving picks.");
     }
+    if (!isFinalWeek(latestCurrentWeek, latestWeeks) && !eliminatedBakerId) {
+      throw new Error("An eliminated baker is required for this week. Refresh the page.");
+    }
     await bakeoffApi.savePrediction({
       player_id: playerId,
       week_id: weekId,
       technical_winner_baker_id: $("technicalGuess").value,
       star_baker_id: starBakerId,
-      eliminated_baker_id: eliminatedBakerId,
+      eliminated_baker_id: eliminatedBakerId || null,
       handshake_baker_id: $("handshakeGuess").value || null,
       updated_at: new Date().toISOString(),
     });
