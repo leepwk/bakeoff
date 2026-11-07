@@ -18,20 +18,25 @@ function randomisePredictionPicks() {
     ? Array.from(starSelect.options).filter((option) => Boolean(option.value))
     : [];
 
-  if (eligibleBakers.length < 2) {
+  const currentWeek = state.weeks.find((week) => week.is_current && !week.is_locked);
+  const finalWeek = isFinalWeek(currentWeek);
+  const minimumBakers = finalWeek ? 1 : 2;
+
+  if (eligibleBakers.length < minimumBakers) {
     const status = document.getElementById("predictionStatus");
     if (status) {
-      status.textContent = "At least two active bakers are needed to randomise picks.";
+      status.textContent = `At least ${minimumBakers} active baker${minimumBakers === 1 ? "" : "s"} ${minimumBakers === 1 ? "is" : "are"} needed to randomise picks.`;
       status.classList.add("error");
     }
     return;
   }
 
   const starSelected = randomisePickSelect(starSelect);
+  if (finalWeek && eliminatedSelect) eliminatedSelect.value = "";
   const selectionsMade = [
     randomisePickSelect(document.getElementById("technicalGuess")),
     starSelected,
-    starSelected && randomisePickSelect(eliminatedSelect, { excludeId: starSelect.value }),
+    finalWeek || (starSelected && randomisePickSelect(eliminatedSelect, { excludeId: starSelect.value })),
     randomisePickSelect(document.getElementById("handshakeGuess"), { includeBlank: true }),
   ];
 
